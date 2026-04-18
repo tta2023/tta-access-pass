@@ -187,7 +187,7 @@ const faqs: Faq[] = [
   },
   {
     q: "How do I cancel?",
-    a: "Cancel yourself anytime in PayPal → Settings → Payments → Manage automatic payments → hit cancel. Takes 30 seconds. If you checked out as a guest (no PayPal account) or need help, email hello@theteeacademy.com at least 48 hours before your trial ends and we'll cancel for you. Cancellations after billing aren't refunded, so set a reminder.",
+    a: "Cancel yourself anytime in PayPal → Settings → Payments → Manage automatic payments → hit cancel. Takes 30 seconds. If you checked out as a guest (no PayPal account) or need help, email support@theteeacademy.com at least 48 hours before your trial ends and we'll cancel for you. Cancellations after billing aren't refunded, so set a reminder.",
   },
   {
     q: "What if I'm a complete beginner?",
@@ -693,7 +693,7 @@ export default function Home() {
           </Link>
           <span aria-hidden>·</span>
           <a
-            href="mailto:hello@theteeacademy.com"
+            href="mailto:support@theteeacademy.com"
             className="hover:text-white"
           >
             Contact

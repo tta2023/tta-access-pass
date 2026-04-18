@@ -84,10 +84,10 @@ export default function ThankYou() {
         <p className="mt-10 text-sm text-tta-black/60">
           Questions? Email{" "}
           <a
-            href="mailto:hello@theteeacademy.com"
+            href="mailto:support@theteeacademy.com"
             className="text-tta-purple underline"
           >
-            hello@theteeacademy.com
+            support@theteeacademy.com
           </a>
           .
         </p>
