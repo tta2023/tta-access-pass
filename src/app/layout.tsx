@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Clarity } from "./clarity";
-import { PayPalProvider } from "./paypal-provider";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -37,10 +34,8 @@ export default function RootLayout({
       className={`${outfit.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-body bg-tta-white text-tta-black">
-        <PayPalProvider>{children}</PayPalProvider>
+        {children}
         <Analytics />
-        <SpeedInsights />
-        <Clarity />
       </body>
     </html>
   );

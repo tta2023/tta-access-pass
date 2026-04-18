@@ -1,10 +1,11 @@
 "use client";
 
-import { PayPalButtons } from "@paypal/react-paypal-js";
+import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const TRIAL_PLAN_ID = process.env.NEXT_PUBLIC_PAYPAL_TRIAL_PLAN_ID;
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 const ZAPIER_TRIAL_WEBHOOK = process.env.NEXT_PUBLIC_ZAPIER_TRIAL_WEBHOOK;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -169,53 +170,62 @@ export function CheckoutModal({
                   ? "Enter your email to continue"
                   : "Accept terms to continue"}
               </button>
-            ) : TRIAL_PLAN_ID ? (
+            ) : TRIAL_PLAN_ID && PAYPAL_CLIENT_ID ? (
               <div className="rounded-2xl bg-white p-2 shadow-md ring-1 ring-tta-black/5">
-                <PayPalButtons
-                  style={{
-                    shape: "rect",
-                    color: "gold",
-                    layout: "vertical",
-                    label: "subscribe",
+                <PayPalScriptProvider
+                  options={{
+                    clientId: PAYPAL_CLIENT_ID,
+                    vault: true,
+                    intent: "subscription",
+                    components: "buttons",
                   }}
-                  createSubscription={(_data, actions) =>
-                    actions.subscription.create({
-                      plan_id: TRIAL_PLAN_ID,
-                      subscriber: { email_address: email.trim().toLowerCase() },
-                    })
-                  }
-                  onApprove={async (data) => {
-                    if (ZAPIER_TRIAL_WEBHOOK) {
-                      try {
-                        await fetch(ZAPIER_TRIAL_WEBHOOK, {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            subscriber: {
-                              email_address: email.trim().toLowerCase(),
-                            },
-                            resource: {
+                >
+                  <PayPalButtons
+                    style={{
+                      shape: "rect",
+                      color: "gold",
+                      layout: "vertical",
+                      label: "subscribe",
+                    }}
+                    createSubscription={(_data, actions) =>
+                      actions.subscription.create({
+                        plan_id: TRIAL_PLAN_ID,
+                        subscriber: { email_address: email.trim().toLowerCase() },
+                      })
+                    }
+                    onApprove={async (data) => {
+                      if (ZAPIER_TRIAL_WEBHOOK) {
+                        try {
+                          await fetch(ZAPIER_TRIAL_WEBHOOK, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
                               subscriber: {
                                 email_address: email.trim().toLowerCase(),
                               },
-                            },
-                            subscription_id: data.subscriptionID,
-                            source: "tta-access-pass-landing",
-                          }),
-                        });
-                      } catch (err) {
-                        console.error("Zapier webhook failed:", err);
+                              resource: {
+                                subscriber: {
+                                  email_address: email.trim().toLowerCase(),
+                                },
+                              },
+                              subscription_id: data.subscriptionID,
+                              source: "tta-access-pass-landing",
+                            }),
+                          });
+                        } catch (err) {
+                          console.error("Zapier webhook failed:", err);
+                        }
                       }
-                    }
-                    window.location.href = `/thank-you?subscription_id=${data.subscriptionID}`;
-                  }}
-                  onError={(err) => {
-                    console.error("PayPal error:", err);
-                    alert(
-                      "Something went wrong with PayPal. Please try again or email hello@theteeacademy.com."
-                    );
-                  }}
-                />
+                      window.location.href = `/thank-you?subscription_id=${data.subscriptionID}`;
+                    }}
+                    onError={(err) => {
+                      console.error("PayPal error:", err);
+                      alert(
+                        "Something went wrong with PayPal. Please try again or email hello@theteeacademy.com."
+                      );
+                    }}
+                  />
+                </PayPalScriptProvider>
               </div>
             ) : (
               <p className="text-center text-sm text-red-500">
