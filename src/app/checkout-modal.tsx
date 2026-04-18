@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const TRIAL_PLAN_ID = process.env.NEXT_PUBLIC_PAYPAL_TRIAL_PLAN_ID;
+const ZAPIER_TRIAL_WEBHOOK = process.env.NEXT_PUBLIC_ZAPIER_TRIAL_WEBHOOK;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function CheckoutModal({
@@ -184,6 +185,28 @@ export function CheckoutModal({
                     })
                   }
                   onApprove={async (data) => {
+                    if (ZAPIER_TRIAL_WEBHOOK) {
+                      try {
+                        await fetch(ZAPIER_TRIAL_WEBHOOK, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            subscriber: {
+                              email_address: email.trim().toLowerCase(),
+                            },
+                            resource: {
+                              subscriber: {
+                                email_address: email.trim().toLowerCase(),
+                              },
+                            },
+                            subscription_id: data.subscriptionID,
+                            source: "tta-access-pass-landing",
+                          }),
+                        });
+                      } catch (err) {
+                        console.error("Zapier webhook failed:", err);
+                      }
+                    }
                     window.location.href = `/thank-you?subscription_id=${data.subscriptionID}`;
                   }}
                   onError={(err) => {
