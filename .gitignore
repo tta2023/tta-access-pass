@@ -36,6 +36,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# operational/ops docs (not part of the deployed app)
+mailerlite-*.md
+mailerlite-*.json
+/.claude/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
