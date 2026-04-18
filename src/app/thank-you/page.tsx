@@ -73,9 +73,9 @@ export default function ThankYou() {
                 3
               </span>
               <span>
-                <strong className="text-tta-black">Show up Monday at 6 PM CST</strong>
-                {" "}for your first live class. Replays posted within 24 hours
-                if you miss it.
+                <strong className="text-tta-black">Click the Events tab</strong>
+                {" "}to RSVP for the next live class this week. Replays posted
+                within 24 hours if you miss it.
               </span>
             </li>
           </ol>
