@@ -62,34 +62,34 @@ type UpcomingEvent = {
 };
 const upcoming: UpcomingEvent[] = [
   {
-    date: "Mon, Apr 20",
-    day: "6:00 PM CST",
-    title: "Claude AI Skill Building Class",
-    going: 38,
-  },
-  {
-    date: "Wed, Apr 22",
-    day: "6:00 PM CST",
-    title: "AI for Beginners Q&A + Support Call",
-    going: 0,
-  },
-  {
-    date: "Thu, Apr 23",
-    day: "6:00 PM CST",
-    title: "Coloring Book Biz with AI",
-    going: 35,
-  },
-  {
     date: "Mon, Apr 27",
-    day: "6:00 PM CST",
-    title: "Talking Head Video Tips & Tricks",
-    going: 27,
+    day: "6:00 PM CDT",
+    title: "Talking Head Video Tips & Tricks For Digital Product Sellers",
+    going: 36,
+  },
+  {
+    date: "Wed, Apr 29",
+    day: "6:00 PM CDT",
+    title: "Understanding Claude Design: Creating Carousels & Digital Assets",
+    going: 22,
   },
   {
     date: "Thu, Apr 30",
-    day: "6:00 PM CST",
-    title: "April Sales Reflection + May Goal Setting",
-    going: 22,
+    day: "6:00 PM CDT",
+    title: "April Sales Reflection + May Goal Setting Session",
+    going: 26,
+  },
+  {
+    date: "Mon, May 4",
+    day: "6:00 PM CDT",
+    title: "Higgsfield AI Q&A + Support Call",
+    going: 12,
+  },
+  {
+    date: "Thu, May 7",
+    day: "6:00 PM CDT",
+    title: "Canva Tips & Tricks — This Is NOT a Design Class",
+    going: 9,
   },
 ];
 
