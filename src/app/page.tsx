@@ -1,441 +1,545 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { AnnualCta } from "./annual-cta";
-import { CtaButton } from "./cta-button";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { CheckoutModal } from "./checkout-modal";
 
-function CheckIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-6 w-6 shrink-0 text-tta-pink"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M5 12l5 5L20 7" />
-    </svg>
-  );
-}
+const ANNUAL_CHECKOUT = "https://www.fanbasis.com/agency-checkout/the-tee-academy/zm7Qm";
 
-type Pillar = { emoji: string; title: string; desc: string; bullets: string[] };
-const pillars: Pillar[] = [
-  {
-    emoji: "📦",
-    title: "Physical Product Biz",
-    desc: "Start or scale your t-shirt, print-on-demand, Etsy, TikTok Shop, mug, journal, or coloring book brand.",
-    bullets: [
-      "What to post and how to market without burnout",
-      "Live selling + seasonal promos (Black Friday, Cyber Monday)",
-      "AI crash courses, editing tutorials, mockup templates",
-    ],
-  },
-  {
-    emoji: "💻",
-    title: "Digital Product Biz",
-    desc: "Create and sell digital products, templates, printables, and online courses.",
-    bullets: [
-      "Use AI to plan, launch, and automate marketing workflows",
-      "Launch strategies, funnels, and audience growth",
-      "Build your own mini apps, custom GPTs, and AI workflows",
-    ],
-  },
-  {
-    emoji: "🎬",
-    title: "AI Content Creation",
-    desc: "Prompt secrets from the pros + train to create and edit AI-generated videos that actually convert.",
-    bullets: [
-      "Create your AI Twin or avatar for branded content",
-      "Clone your on-camera presence in Higgsfield AI",
-      "AI voice + visuals for UGC and affiliate marketing",
-    ],
-  },
+/* ────────────────────────────────────────────────────────────
+   DATA
+   ──────────────────────────────────────────────────────────── */
+
+type UpcomingEvent = { date: string; day: string; title: string };
+const upcoming: UpcomingEvent[] = [
+  { date: "Wed, May 20", day: "6:00 PM CDT · Tomorrow", title: "Social Media Content Audits + HOOK Training" },
+  { date: "Thu, May 21", day: "6:00 PM CDT", title: "Affiliate Marketing w/ AI — TikTok Shop & Amazon" },
+  { date: "Mon, May 25", day: "6:00 PM CDT", title: "Etsy / Print On Demand Sellers Q&A + Support Call" },
+  { date: "Wed, May 27", day: "6:00 PM CDT", title: "Claude Code Vibe Coding Session + Support Call" },
+  { date: "Thu, May 28", day: "6:00 PM CDT", title: "Monthly Reflection + June Goal Setting" },
+  { date: "Mon, Jun 1", day: "6:00 PM CDT", title: "Seedance 2.0 Tips & Tricks: Support Call + Q&A" },
 ];
 
-type UpcomingEvent = {
-  date: string;
-  day: string;
-  title: string;
-  going: number;
-};
-const upcoming: UpcomingEvent[] = [
-  {
-    date: "Mon, Apr 27",
-    day: "6:00 PM CDT",
-    title: "Talking Head Video Tips & Tricks For Digital Product Sellers",
-    going: 36,
-  },
-  {
-    date: "Wed, Apr 29",
-    day: "6:00 PM CDT",
-    title: "Understanding Claude Design: Creating Carousels & Digital Assets",
-    going: 22,
-  },
-  {
-    date: "Thu, Apr 30",
-    day: "6:00 PM CDT",
-    title: "April Sales Reflection + May Goal Setting Session",
-    going: 26,
-  },
-  {
-    date: "Mon, May 4",
-    day: "6:00 PM CDT",
-    title: "Higgsfield AI Q&A + Support Call",
-    going: 12,
-  },
-  {
-    date: "Thu, May 7",
-    day: "6:00 PM CDT",
-    title: "Canva Tips & Tricks — This Is NOT a Design Class",
-    going: 9,
-  },
+const libraryTiles: { src: string; label: string }[] = [
+  { src: "/library/tile-1-ai-system.png", label: "AI Powered System For Any Biz" },
+  { src: "/library/tile-ai-language.jpg", label: "AI Language Models For Beginners" },
+  { src: "/library/tile-7-pod.png", label: "Print on Demand w/ AI" },
+  { src: "/library/tile-ai-content-physical.jpg", label: "AI Content Class: Physical Products" },
+  { src: "/library/tile-5-branding-gems.png", label: "Branding & Marketing Gems" },
+  { src: "/library/tile-money-map.jpg", label: "The Money Map" },
+  { src: "/library/tile-ai-twin.png", label: "How To Create An AI Twin / Avatar" },
+  { src: "/library/tile-digital-biz.png", label: "How To Start A Digital Product Biz" },
 ];
 
 const trainingCategories: { label: string; items: string[] }[] = [
   {
     label: "AI Skills",
-    items: [
-      "Prompt Like A Pro",
-      "AI Language Models for Beginners",
-      "Nano Banana Image Prompts",
-      "AI Edit Like A Pro",
-      "AI Lip Sync Training",
-      "Higgsfield AI Twin",
-      "AI Avatar For Free",
-      "Custom GPTs + Mini Apps",
-    ],
+    items: ["Prompt Like A Pro", "AI Language Models for Beginners", "Nano Banana Image Prompts", "AI Edit Like A Pro", "AI Lip Sync Training", "Higgsfield AI Twin", "AI Avatar For Free", "Custom GPTs + Mini Apps"],
   },
   {
     label: "Video & Content",
-    items: [
-      "Product Videos w/ AI",
-      "Kling 3.0",
-      "Seedance 2.0",
-      "Sora 2 + Google Veo",
-      "YouTube Channel w/ AI",
-      "Animated Episodic Content",
-      "AI Twin Talking Video",
-    ],
+    items: ["Product Videos w/ AI", "Kling 3.0", "Seedance 2.0", "Sora 2 + Google Veo", "YouTube Channel w/ AI", "Animated Episodic Content", "AI Twin Talking Video"],
   },
   {
     label: "Physical Products",
-    items: [
-      "T-Shirt Brand Course",
-      "Sublimation Camp",
-      "POD Biz with AI",
-      "Cup & Journal Biz",
-      "Coloring Book Creations",
-      "Canvas To Cash 5-Day",
-      "Shopify Tips",
-    ],
+    items: ["T-Shirt Brand Course", "Sublimation Camp", "POD Biz with AI", "Cup & Journal Biz", "Coloring Book Creations", "Canvas To Cash 5-Day", "Shopify Tips"],
   },
   {
     label: "Digital Products",
-    items: [
-      "Digital Marketing Journey",
-      "How To Start A Digital Product Biz",
-      "PNG Profits Camp",
-      "Holiday Themed Classes",
-      "1k Digital Marketing Sales Play",
-      "Digital Product Content Strategy",
-    ],
+    items: ["Digital Marketing Journey", "How To Start A Digital Product Biz", "PNG Profits Camp", "Holiday Themed Classes", "1k Digital Marketing Sales Play", "Digital Product Content Strategy"],
   },
   {
     label: "Business & Marketing",
-    items: [
-      "Money Map: Monthly Revenue Planning",
-      "AutoDM System (Sales In Your Sleep)",
-      "Email & Text Marketing 101",
-      "SEO Camp",
-      "Branding & Marketing Gems",
-      "30-Day Revenue Reset",
-      "Black Friday + Cyber Monday Training",
-    ],
+    items: ["Money Map: Monthly Revenue Planning", "AutoDM System (Sales In Your Sleep)", "Email & Text Marketing 101", "SEO Camp", "Branding & Marketing Gems", "30-Day Revenue Reset", "Black Friday + Cyber Monday Training"],
   },
   {
     label: "Libraries & Resources",
-    items: [
-      "Mockups & Stock Image Library",
-      "Biz Resources & Templates",
-      "Canva Learning Space",
-      "TTA Besties Content Studio App",
-      "Monthly Sales Reflection Replays",
-      "T-Shirt Design Hall",
-    ],
+    items: ["Mockups & Stock Image Library", "Biz Resources & Templates", "Canva Learning Space", "TTA Besties Content Studio App", "Monthly Sales Reflection Replays", "T-Shirt Design Hall"],
   },
 ];
 
 const whoFor = [
-  "You sell — or want to sell — physical or digital products",
-  "You want to leverage AI to automate and grow your brand",
-  "You crave structure, systems, and community accountability",
-  "You're ready to stop guessing and start earning consistently",
-  "You're a creative building online income — teacher, maker, seller, or all three",
+  "Print on demand sellers",
+  "Etsy + digital product sellers",
+  "Coloring book creators",
+  "Course + membership builders",
+  "Live sellers",
+  "Apparel + beauty brands",
+  "Content creators",
+  "Aspiring creators ready to start",
+];
+
+const notFor = [
+  "Tech bros looking for the next hype cycle.",
+  "\"AI money\" content watchers who never build.",
+  "People looking for magic pills or shortcuts.",
+  "People who want coddling instead of coaching.",
 ];
 
 type Faq = { q: string; a: string };
 const faqs: Faq[] = [
   {
-    q: "When are the live classes?",
-    a: "Live AI business classes every Monday and Thursday at 6 PM CST, plus bonus classes on some Wednesdays. Claude, AI content, and business strategy are woven throughout. Every class is recorded and uploaded to the member hub within 24 hours.",
+    q: "What exactly do I get for $7?",
+    a: "Full access to The Tee Academy for 7 days. Every live class happening that week (Mon + Thu at 6 PM CDT, plus bonus Wednesday drops), 40+ self-paced trainings, the prompt library, the community, and all on-demand AI tool walkthroughs. Same dashboard a $44/mo member sees.",
   },
   {
     q: "What happens after the 7 days?",
-    a: "Your membership auto-continues at $44/month (normally $97). You'll be notified before the charge.",
+    a: "Your membership auto-continues at $44/month (regularly $97). You'll be notified before the charge so there are no surprises. Cancel inside PayPal in 2 clicks any time before day 7.",
   },
   {
     q: "How do I cancel?",
-    a: "Cancel yourself anytime in PayPal → Settings → Payments → Manage automatic payments → hit cancel. Takes 30 seconds. If you checked out as a guest (no PayPal account) or need help, email support@theteeacademy.co at least 48 hours before your trial ends and we'll cancel for you. Cancellations after billing aren't refunded, so set a reminder.",
+    a: "Cancel yourself anytime in PayPal → Settings → Payments → Manage automatic payments → cancel. Takes 30 seconds. If you checked out as a guest or need help, email support@theteeacademy.co at least 48 hours before your trial ends. Cancellations after billing aren't refunded — set a reminder.",
   },
   {
     q: "What if I'm a complete beginner?",
-    a: "Perfect. 40+ self-paced trainings start at the basics — t-shirts, POD, digital products, AI — plus live coaching every week.",
+    a: "Perfect. 40+ self-paced trainings start at the basics — t-shirts, POD, digital products, AI — plus live coaching every Mon + Thu. If you can copy + paste, you can keep up.",
   },
   {
     q: "What's included in the AI Twin training?",
-    a: "Full walkthroughs for building your AI Twin in Higgsfield, creating AI avatars for free, AI lip sync, talking-head video, and using your twin across content and ads.",
+    a: "Full walkthroughs for building your AI Twin in Higgsfield, creating AI avatars for free, AI lip sync, talking-head video, and using your twin across content, ads, and your funnel.",
+  },
+  {
+    q: "What kind of business does this work for?",
+    a: "Print on demand, Etsy, digital products, coloring books, courses, memberships, apparel, beauty, live sales, content businesses. If you're selling something creative, the Academy fits.",
   },
   {
     q: "Do I need tech skills?",
-    a: "No. TTA is built for creatives who don't consider themselves 'tech people.' Every training starts at the basics and walks you through it step by step.",
+    a: "No. TTA is built for creatives who don't consider themselves \"tech people.\" Every training starts at the basics and walks you through it step by step.",
+  },
+  {
+    q: "What's the difference between monthly and annual?",
+    a: "Monthly is $44/mo, cancel any time. Annual is $397/year — that's 8 months for the price of 12, plus you get the Prompt Like A Pro Generator ($47 value) and a 30-min welcome jumpstart call with Coach Tee, free.",
   },
 ];
 
+/* ────────────────────────────────────────────────────────────
+   COUNTDOWN TICKER
+   ──────────────────────────────────────────────────────────── */
+
+function CountdownTicker() {
+  // Sale window — closes Sunday May 4 23:59 CT (so today is "the 7-Day Pass closes in")
+  const deadlineRef = useRef<number>(new Date("2026-05-04T23:59:00-05:00").getTime());
+  const [parts, setParts] = useState({ d: "00", h: "00", m: "00", s: "00" });
+
+  useEffect(() => {
+    const tick = () => {
+      const now = Date.now();
+      let s = Math.max(0, Math.floor((deadlineRef.current - now) / 1000));
+      const d = Math.floor(s / 86400); s -= d * 86400;
+      const h = Math.floor(s / 3600); s -= h * 3600;
+      const m = Math.floor(s / 60); s -= m * 60;
+      const pad = (n: number) => String(n).padStart(2, "0");
+      setParts({ d: pad(d), h: pad(h), m: pad(m), s: pad(s) });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div className="sticky top-0 z-30 bg-tta-ink text-white">
+      <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-4 px-7 py-3">
+        <div className="flex items-center gap-2.5 font-heading text-base sm:text-lg font-black tracking-tight">
+          <span
+            className="inline-block h-2 w-2 rounded-full bg-tta-pink"
+            style={{ animation: "tta-pulse 1.6s ease-in-out infinite" }}
+          />
+          <span>The 7-Day Pass closes in</span>
+        </div>
+        <div className="flex items-center gap-2.5 font-heading">
+          <span className="font-body text-[11px] font-bold uppercase tracking-[0.18em] text-tta-pink-wash hidden sm:inline">
+            Doors close
+          </span>
+          <div className="flex gap-1.5">
+            {[
+              { n: parts.d, u: "Days" },
+              { n: parts.h, u: "Hrs" },
+              { n: parts.m, u: "Min" },
+              { n: parts.s, u: "Sec" },
+            ].map((c) => (
+              <div key={c.u} className="min-w-[46px] rounded-md bg-tta-purple px-2.5 pt-1.5 pb-1 text-center">
+                <span className="block font-heading text-xl leading-none tabular-nums">{c.n}</span>
+                <span className="mt-0.5 block font-body text-[9px] font-bold uppercase tracking-[0.16em] text-tta-purple-wash">{c.u}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────
+   STAMP BUTTON — primary CTA, opens $7 checkout modal
+   ──────────────────────────────────────────────────────────── */
+
+function StampButton({
+  onClick,
+  children,
+  price = "$7",
+  variant = "purple",
+  fullWidth = false,
+}: {
+  onClick: () => void;
+  children: React.ReactNode;
+  price?: string;
+  variant?: "purple" | "ink" | "white";
+  fullWidth?: boolean;
+}) {
+  const palette =
+    variant === "purple"
+      ? { bg: "var(--color-tta-purple)", border: "var(--color-tta-ink)", text: "#fff", shadow: "var(--color-tta-ink)", priceBg: "var(--color-tta-pink)", priceText: "var(--color-tta-ink)", hover: "var(--color-tta-purple-hover)" }
+      : variant === "ink"
+      ? { bg: "var(--color-tta-ink)", border: "var(--color-tta-ink)", text: "#fff", shadow: "var(--color-tta-purple)", priceBg: "var(--color-tta-pink)", priceText: "var(--color-tta-ink)", hover: "var(--color-tta-purple)" }
+      : { bg: "#fff", border: "var(--color-tta-pink)", text: "var(--color-tta-ink)", shadow: "var(--color-tta-pink)", priceBg: "var(--color-tta-purple)", priceText: "#fff", hover: "var(--color-tta-pink-wash)" };
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group inline-flex items-center gap-3 rounded-[10px] px-7 py-4 font-body text-sm font-black uppercase tracking-[0.08em] transition active:translate-x-[3px] active:translate-y-[3px] ${fullWidth ? "w-full justify-center" : ""}`}
+      style={{
+        background: palette.bg,
+        color: palette.text,
+        border: `2px solid ${palette.border}`,
+        boxShadow: `6px 6px 0 ${palette.shadow}`,
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = palette.hover)}
+      onMouseLeave={(e) => (e.currentTarget.style.background = palette.bg)}
+      onMouseDown={(e) => (e.currentTarget.style.boxShadow = `3px 3px 0 ${palette.shadow}`)}
+      onMouseUp={(e) => (e.currentTarget.style.boxShadow = `6px 6px 0 ${palette.shadow}`)}
+    >
+      <span>{children}</span>
+      <span
+        className="rounded-[4px] px-2 py-0.5 font-heading text-[18px] tracking-tight"
+        style={{ background: palette.priceBg, color: palette.priceText }}
+      >
+        {price}
+      </span>
+    </button>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────
+   FAQ ACCORDION
+   ──────────────────────────────────────────────────────────── */
+
+function FaqList() {
+  const [openIdx, setOpenIdx] = useState<number | null>(0);
+  return (
+    <div className="border-t border-tta-hair">
+      {faqs.map((f, i) => {
+        const isOpen = openIdx === i;
+        return (
+          <div key={f.q} className="border-b border-tta-hair">
+            <button
+              type="button"
+              onClick={() => setOpenIdx(isOpen ? null : i)}
+              className="group flex w-full items-center justify-between gap-4 py-6 text-left font-heading text-xl sm:text-2xl font-black tracking-tight text-tta-ink transition hover:text-tta-purple"
+              aria-expanded={isOpen}
+            >
+              <span>{f.q}</span>
+              <span
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[1.5px] transition ${
+                  isOpen ? "rotate-45 border-tta-purple bg-tta-purple text-white" : "border-tta-ink text-tta-ink"
+                }`}
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                  <line x1="7" y1="2" x2="7" y2="12" />
+                  <line x1="2" y1="7" x2="12" y2="7" />
+                </svg>
+              </span>
+            </button>
+            <div
+              className="overflow-hidden transition-[max-height] duration-300 ease-out"
+              style={{ maxHeight: isOpen ? "320px" : "0px" }}
+            >
+              <p className="max-w-xl pb-6 pr-4 text-base leading-relaxed text-tta-graphite">{f.a}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────
+   STICKY MOBILE BAR
+   ──────────────────────────────────────────────────────────── */
+
+function StickyMobileBar({ onCta }: { onCta: () => void }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      const hero = document.getElementById("hero");
+      const pricing = document.getElementById("pricing");
+      if (!hero || !pricing) return;
+      const past = window.scrollY > hero.offsetTop + hero.offsetHeight - 200;
+      const r = pricing.getBoundingClientRect();
+      const pricingVisible = r.top < window.innerHeight && r.bottom > 0;
+      setShow(past && !pricingVisible);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    onScroll();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+  return (
+    <div
+      className="fixed bottom-6 left-1/2 z-[25] flex max-w-[calc(100vw-32px)] items-center gap-4 rounded-full bg-tta-ink px-5 py-3.5 text-white transition-transform duration-300 ease-out"
+      style={{
+        transform: show ? "translate(-50%, 0)" : "translate(-50%, 140%)",
+        boxShadow: "0 16px 40px rgba(1,1,1,0.28), 0 0 0 2px var(--color-tta-pink)",
+      }}
+    >
+      <span className="font-heading text-base font-black tracking-tight">
+        7 days · <span className="text-tta-pink">$7</span>
+      </span>
+      <button
+        type="button"
+        onClick={onCta}
+        className="rounded-full bg-tta-pink px-4 py-2 font-body text-xs font-black uppercase tracking-[0.12em] text-tta-ink transition hover:bg-white"
+      >
+        Grab it
+      </button>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────
+   PAGE
+   ──────────────────────────────────────────────────────────── */
+
 export default function Home() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [annualAgreed, setAnnualAgreed] = useState(false);
+  const [isClassDay, setIsClassDay] = useState(false);
+  useEffect(() => {
+    const fmt = new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", weekday: "short" });
+    const day = fmt.format(new Date());
+    setIsClassDay(day === "Mon" || day === "Thu");
+  }, []);
+  const openModal = useCallback(() => setModalOpen(true), []);
+  const scrollToPricing = useCallback(() => {
+    document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+  const scrollToInside = useCallback(() => {
+    document.getElementById("inside")?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
   return (
     <main className="flex-1">
+      {/* COUNTDOWN TICKER */}
+      <CountdownTicker />
+
+      {/* NAV */}
+      <nav className="sticky top-[46px] sm:top-[58px] z-20 border-b border-tta-hair bg-white/90 backdrop-blur-md backdrop-saturate-150">
+        <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-6 px-7 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-[9px] bg-tta-ink font-heading text-2xl font-black tracking-tight text-white">
+              T<b className="text-tta-pink">·</b>
+            </div>
+            <div className="font-heading text-xl sm:text-2xl font-black tracking-tight">THE TEE ACADEMY</div>
+          </div>
+          <div className="flex items-center gap-5">
+            <div className="hidden sm:flex items-center gap-2 font-body text-xs font-bold uppercase tracking-[0.14em] text-tta-graphite">
+              $44/mo · <span className="text-tta-mist line-through">$97</span>
+            </div>
+            <button
+              type="button"
+              onClick={scrollToPricing}
+              className="whitespace-nowrap rounded-lg bg-tta-purple px-4 py-3 font-body text-xs font-black uppercase tracking-[0.1em] text-white transition hover:bg-tta-purple-hover"
+            >
+              Get the Pass
+            </button>
+          </div>
+        </div>
+      </nav>
+
       {/* HERO */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-tta-white via-tta-white to-purple-50 px-6 pt-16 pb-20 sm:pt-20 sm:pb-28">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-32 -right-32 h-96 w-96 rounded-full bg-tta-pink/10 blur-3xl"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-tta-purple/10 blur-3xl"
-        />
-        <div className="relative mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-[1.1fr_1fr]">
-          <div className="text-center md:text-left">
-            <span className="inline-block rounded-full bg-tta-purple/10 px-4 py-1.5 font-heading text-xs font-bold uppercase tracking-[0.18em] text-tta-purple">
-              The Tee Academy
+      <section id="hero" className="mx-auto grid max-w-[1280px] items-center gap-12 px-7 py-16 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:py-24">
+        <div>
+          <span className="inline-flex items-center gap-3 font-body text-xs font-bold uppercase tracking-[0.22em] text-tta-purple-hover before:inline-block before:h-0.5 before:w-7 before:bg-current">
+            7-Day Access Pass · Just $7
+          </span>
+          <h1 className="mt-5 font-heading font-black tracking-tight leading-[1.02] text-[clamp(54px,7vw,108px)]">
+            Stop playing with AI.
+            <br />
+            Start making <em className="not-italic text-tta-purple">real money.</em>
+          </h1>
+          <p className="mt-6 max-w-xl font-body text-lg sm:text-xl leading-relaxed text-tta-graphite">
+            7 days of full access to The Tee Academy — the AI business school for creative women ready to turn prompts into real income. Live workshops 2× a week, the prompt library, AI Twin training, and the receipts to prove it works.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <StampButton onClick={openModal} price="$7">Grab the 7-Day Pass</StampButton>
+            <button
+              type="button"
+              onClick={scrollToInside}
+              className="rounded-[10px] border-[1.5px] border-tta-ink bg-transparent px-5 py-4 font-body text-xs font-black uppercase tracking-[0.1em] text-tta-ink transition hover:bg-tta-ink hover:text-white"
+            >
+              See what&apos;s inside
+            </button>
+          </div>
+          <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-tta-ash">
+            <div><b className="font-bold text-tta-ink">Instant access.</b> Cancel any time.</div>
+            <span className="hidden sm:inline-block h-1 w-1 rounded-full bg-tta-mist" />
+            <div><b className="font-bold text-tta-ink">500+</b> creatives building inside</div>
+            {isClassDay && (
+              <>
+                <span className="hidden sm:inline-block h-1 w-1 rounded-full bg-tta-mist" />
+                <div><b className="font-bold text-tta-ink">Live</b> workshop tonight</div>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="relative aspect-[4/5] overflow-hidden rounded-[22px] border-2 border-tta-ink bg-tta-cloud" style={{ boxShadow: "8px 8px 0 var(--color-tta-purple)" }}>
+          <Image src="/photos/purple-hoodie-laptop.png" alt="Coach Tee in a purple hoodie at her laptop" fill className="object-cover" priority sizes="(max-width: 1024px) 90vw, 540px" />
+          <div
+            className="absolute -left-4 top-9 rotate-[-4deg] rounded-[10px] bg-tta-ink px-4 py-3.5 font-heading text-xl font-black leading-none tracking-tight text-white"
+            style={{ boxShadow: "4px 4px 0 var(--color-tta-pink)" }}
+          >
+            7 DAYS
+            <br />
+            <em className="not-italic text-tta-pink">· $7 ·</em>
+          </div>
+          {isClassDay && (
+            <div className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full border-2 border-tta-ink bg-white px-3.5 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-tta-ink">
+              <span className="h-1.5 w-1.5 rounded-full bg-tta-pink" />
+              Live workshop tonight 6 PM CDT
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* TRUST STRIP */}
+      <div className="border-y border-tta-hair bg-tta-cloud">
+        <div className="mx-auto flex max-w-[1280px] flex-wrap items-center gap-x-9 gap-y-3 px-7 py-5">
+          <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-tta-ash">What you&apos;ll actually build</div>
+          <div className="flex flex-wrap items-center gap-x-9 gap-y-2 font-heading text-xl sm:text-[22px] font-black tracking-tight text-tta-ink">
+            <span>Print on Demand</span>
+            <span className="h-1.5 w-1.5 rotate-45 bg-tta-purple" />
+            <span>Etsy Shops</span>
+            <span className="h-1.5 w-1.5 rotate-45 bg-tta-purple" />
+            <span>AI Twins</span>
+            <span className="h-1.5 w-1.5 rotate-45 bg-tta-purple" />
+            <span>Campaign Funnels</span>
+            <span className="h-1.5 w-1.5 rotate-45 bg-tta-purple" />
+            <span>Live Sales</span>
+          </div>
+        </div>
+      </div>
+
+      {/* AI TWIN SPOTLIGHT — Option A */}
+      <section className="bg-tta-purple-wash py-24">
+        <div className="mx-auto grid max-w-[1280px] items-center gap-14 px-7 lg:grid-cols-[1fr_1.05fr]">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-[22px] border-2 border-tta-ink bg-white order-last lg:order-first" style={{ boxShadow: "10px 10px 0 var(--color-tta-pink)" }}>
+            <Image src="/photos/gray-suit-boss.png" alt="Coach Tee's AI Twin in a gray suit" fill className="object-cover" sizes="(max-width: 1024px) 90vw, 540px" />
+            <div
+              className="absolute right-4 top-4 rotate-[3deg] rounded-[10px] bg-tta-pink px-3.5 py-2 font-heading text-base font-black tracking-tight text-tta-ink"
+              style={{ boxShadow: "3px 3px 0 var(--color-tta-ink)" }}
+            >
+              ↓ This is AI ↓
+            </div>
+          </div>
+          <div>
+            <span className="inline-flex items-center gap-3 font-body text-xs font-bold uppercase tracking-[0.22em] text-tta-purple-hover before:inline-block before:h-0.5 before:w-7 before:bg-current">
+              The AI Twin Vault
             </span>
-            <h1 className="mt-6 font-heading text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl md:text-[4.25rem]">
-              Get Inside TTA for 7 Days.
-              <br />
-              <span className="text-tta-purple">For $7.</span>
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-tta-black/70 sm:text-xl md:mx-0">
-              Live AI business classes every Monday &amp; Thursday at 6 PM CST,
-              plus bonus Wednesday drops. Build AI-powered income alongside
-              500+ creatives already inside.
+            <h2 className="mt-4 font-heading font-black tracking-tight leading-[1.02] text-[clamp(40px,5.5vw,76px)]">
+              Build the version of you <em className="not-italic text-tta-purple">that never gets camera shy.</em>
+            </h2>
+            <p className="mt-5 max-w-xl font-body text-lg leading-relaxed text-tta-graphite">
+              Your AI Twin is the unfair advantage hiding inside TTA. Show up daily on camera without showing up on camera. The full vault is yours from day one of your 7-Day Pass.
             </p>
-            <div className="mt-10 flex justify-center md:justify-start">
-              <CtaButton>Start My 7-Day Pass — $7</CtaButton>
-            </div>
-            <p className="mt-4 text-sm text-tta-black/60">
-              Then $44/month (normally $97). Cancel anytime in PayPal in 2 clicks.
-            </p>
-            <p className="mt-8 font-heading text-sm font-bold uppercase tracking-wider text-tta-purple">
-              500+ creatives inside · 40+ self-paced trainings · Live classes 2× a week
-            </p>
-          </div>
-          <div className="relative mx-auto w-full max-w-md md:max-w-none">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] shadow-2xl shadow-tta-purple/30 ring-1 ring-tta-purple/10">
-              <Image
-                src="/tta-hero.webp"
-                alt="The Tee Academy — AI Business Membership"
-                fill
-                priority
-                sizes="(min-width: 768px) 450px, 100vw"
-                className="object-cover object-top"
-              />
+            <ul className="mt-7 grid gap-3 sm:grid-cols-2">
+              {[
+                { h: "Clone your face for camera-shy reels", d: "Higgsfield AI Twin walkthrough — built and shipping in under an hour." },
+                { h: "Use your twin in ads + funnels", d: "Talking-head ads, course intros, sales reels — without you in glam every time." },
+                { h: "AI Avatars (free option included)", d: "When the budget's not there yet — we have the free workflow too." },
+                { h: "AI Lip Sync + Voice Match", d: "Make the twin actually sound like you, not a robot." },
+              ].map((b) => (
+                <li key={b.h} className="flex items-start gap-3 rounded-2xl border border-tta-hair bg-white p-4">
+                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-tta-purple text-white">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  </div>
+                  <div>
+                    <div className="font-heading text-lg font-black tracking-tight">{b.h}</div>
+                    <div className="mt-0.5 text-sm leading-snug text-tta-graphite">{b.d}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-9">
+              <StampButton onClick={openModal} price="$7" variant="ink">Unlock AI Twin Training</StampButton>
             </div>
           </div>
         </div>
       </section>
 
-      {/* THREE PILLARS */}
-      <section className="bg-tta-white px-6 py-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center">
-            <p className="font-heading text-sm font-bold uppercase tracking-[0.18em] text-tta-pink">
-              What You&apos;ll Build
-            </p>
-            <h2 className="mt-3 font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">
-              Three Kinds of Income. One Room.
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-lg text-tta-black/70">
-              Physical products. Digital products. AI-powered content. TTA has
-              the full playbook for all three — and the room to actually do the
-              work.
-            </p>
-          </div>
-          <div className="mt-16 grid gap-6 md:grid-cols-3">
-            {pillars.map((p) => (
-              <div
-                key={p.title}
-                className="flex flex-col rounded-3xl border border-tta-teal/20 bg-gradient-to-br from-tta-teal/5 to-tta-white p-8 transition hover:-translate-y-1 hover:border-tta-teal/40 hover:shadow-xl"
-              >
-                <div className="text-4xl">{p.emoji}</div>
-                <h3 className="mt-5 font-heading text-2xl font-bold">
-                  {p.title}
-                </h3>
-                <p className="mt-3 text-base leading-relaxed text-tta-black/70">
-                  {p.desc}
-                </p>
-                <ul className="mt-5 space-y-3 text-sm">
-                  {p.bullets.map((b) => (
-                    <li key={b} className="flex items-start gap-2">
-                      <CheckIcon />
-                      <span className="text-tta-black/80">{b}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* LIVE THIS WEEK */}
-      <section className="relative overflow-hidden bg-tta-purple px-6 py-24 text-white">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-tta-purple via-tta-purple to-purple-900"
-        />
-        <div className="relative mx-auto max-w-5xl">
-          <div className="text-center">
-            <p className="font-heading text-sm font-bold uppercase tracking-[0.18em] text-tta-pink">
-              Live &amp; Upcoming
-            </p>
-            <h2 className="mt-3 font-heading text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-              Your First Class Could Be This Week.
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-lg text-white/80">
-              These are real classes on the calendar right now. Show up live,
-              or watch every replay inside the hub.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2">
-            {upcoming.map((e) => (
-              <div
-                key={e.title}
-                className="flex items-start gap-5 rounded-2xl bg-white/10 p-6 backdrop-blur-sm ring-1 ring-white/10 transition hover:bg-white/15"
-              >
-                <div className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-xl bg-tta-pink text-white shadow-lg">
-                  <span className="font-heading text-[0.65rem] font-bold uppercase tracking-wider">
-                    {e.date.split(",")[0]}
-                  </span>
-                  <span className="font-heading text-2xl font-extrabold leading-none">
-                    {e.date.split(" ")[2]}
-                  </span>
-                  <span className="font-heading text-[0.6rem] font-bold uppercase tracking-wider">
-                    {e.date.split(" ")[1].replace(",", "")}
-                  </span>
-                </div>
-                <div>
-                  <p className="font-heading text-xs font-bold uppercase tracking-wider text-tta-pink">
-                    {e.day}
-                  </p>
-                  <h3 className="mt-1 font-heading text-lg font-bold leading-tight">
-                    {e.title}
-                  </h3>
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="mt-10 text-center text-sm text-white/60">
-            Live classes every Monday &amp; Thursday · Bonus Wednesday drops · All 6 PM CST
+      {/* INSIDE — DARK BAND */}
+      <section id="inside" className="bg-tta-ink text-white">
+        <div className="mx-auto max-w-[1280px] px-7 py-24">
+          <span className="inline-flex items-center gap-3 font-body text-xs font-bold uppercase tracking-[0.22em] text-tta-pink before:inline-block before:h-0.5 before:w-7 before:bg-current">
+            Inside your 7 days
+          </span>
+          <h2 className="mt-4 max-w-3xl font-heading font-black tracking-tight leading-[1.02] text-[clamp(42px,5.5vw,82px)]">
+            Full access. <em className="not-italic text-tta-pink">No watered-down trial.</em>
+          </h2>
+          <p className="mt-5 max-w-xl text-lg leading-relaxed text-[#B5B5B6]">
+            For one week, you get exactly what every full member gets. Walk in, build, sell, and decide if it&apos;s for you.
           </p>
-        </div>
-      </section>
-
-      {/* SELF-PACED CATALOG */}
-      <section className="bg-tta-white px-6 py-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center">
-            <p className="font-heading text-sm font-bold uppercase tracking-[0.18em] text-tta-pink">
-              40+ Self-Paced Trainings
-            </p>
-            <h2 className="mt-3 font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">
-              Yours the Moment You Join.
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-lg text-tta-black/70">
-              Binge the library. Pick one. Start any course, any time — no
-              waiting, no drip delays.
-            </p>
-          </div>
-          <div className="relative mt-14 aspect-[16/7] w-full overflow-hidden rounded-3xl shadow-xl ring-1 ring-tta-black/5">
-            <Image
-              src="/tta-desc-2.webp"
-              alt="Build AI-powered content, landing pages, and marketing assets inside TTA"
-              fill
-              sizes="(min-width: 1024px) 1024px, 100vw"
-              className="object-cover object-center"
-            />
-          </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
-            {trainingCategories.map((cat) => (
-              <div
-                key={cat.label}
-                className="rounded-3xl border border-tta-black/5 bg-purple-50/40 p-7"
-              >
-                <h3 className="font-heading text-lg font-extrabold uppercase tracking-wider text-tta-purple">
-                  {cat.label}
-                </h3>
-                <ul className="mt-4 flex flex-wrap gap-2">
-                  {cat.items.map((item) => (
-                    <li
-                      key={item}
-                      className="rounded-full bg-tta-white px-3.5 py-1.5 text-sm font-medium text-tta-black/80 shadow-sm ring-1 ring-tta-black/5"
-                    >
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { num: "01", h: "Live Workshops", d: "Mon + Thu live coaching at 6 PM CDT, plus bonus Wednesday drops. Hot-seats, campaign teardowns, real asks, real answers.", tag: "Weekly · Live" },
+              { num: "02", h: "The Prompt Library", d: "Every prompt I actually use — campaign copy, product visuals, AI twins, funnels, live-sale scripts. Copy + ship.", tag: "Always on" },
+              { num: "03", h: "The Community", d: "Women who are building, not watching. Show your work, get eyes on it, find collabs and customers.", tag: "Members only" },
+              { num: "04", h: "AI Tool Walkthroughs", d: "40+ step-by-step builds inside the tools we actually use — no fluff, no \"47 AI sites\" lists.", tag: "On-demand" },
+            ].map((c) => (
+              <div key={c.num} className="relative overflow-hidden rounded-[18px] border border-[#2A2A2E] bg-[#161618] p-7 transition hover:-translate-y-1 hover:border-tta-purple">
+                <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-tta-purple text-white">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    {c.num === "01" && (<><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></>)}
+                    {c.num === "02" && (<><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></>)}
+                    {c.num === "03" && (<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></>)}
+                    {c.num === "04" && (<path d="M12 2 15 8.5 22 9.5 17 14.5 18.2 22 12 18.5 5.8 22 7 14.5 2 9.5 9 8.5z" />)}
+                  </svg>
+                </div>
+                <div className="mt-3.5 font-heading text-sm font-black tracking-[0.06em] text-tta-pink">{c.num}</div>
+                <h3 className="mt-1 font-heading text-2xl font-black leading-tight tracking-tight">{c.h}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[#B5B5B6]">{c.d}</p>
+                <div className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-tta-pink">{c.tag}</div>
               </div>
             ))}
           </div>
-          <p className="mx-auto mt-10 max-w-2xl text-center text-base text-tta-black/60">
-            Plus the TTA Besties Group Chat, member feed, 1:1 call discounts,
-            and transfer discounts.
-          </p>
         </div>
       </section>
 
-      {/* PEEK INSIDE THE LIBRARY */}
-      <section className="bg-gradient-to-b from-tta-white to-purple-50/40 px-6 py-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center">
-            <p className="font-heading text-sm font-bold uppercase tracking-[0.18em] text-tta-pink">
+      {/* SNEAK PEEK INSIDE — actual library tile artwork */}
+      <section className="bg-tta-cloud py-24">
+        <div className="mx-auto max-w-[1280px] px-7">
+          <div className="max-w-3xl">
+            <span className="inline-flex items-center gap-3 font-body text-xs font-bold uppercase tracking-[0.22em] text-tta-purple-hover before:inline-block before:h-0.5 before:w-7 before:bg-current">
               Sneak Peek Inside
-            </p>
-            <h2 className="mt-3 font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">
-              This Is What the Library Actually Looks Like.
+            </span>
+            <h2 className="mt-4 font-heading font-black tracking-tight leading-[1.02] text-[clamp(40px,5vw,72px)]">
+              This is what the library <em className="not-italic text-tta-purple">actually looks like.</em>
             </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-lg text-tta-black/70">
-              Real training covers pulled straight from inside TTA right now.
-              Every tile is a full class waiting for you.
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-tta-graphite">
+              Real training covers pulled straight from inside TTA right now. Every tile is a full class waiting for you on day one.
             </p>
           </div>
           <div className="mt-14 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
-            {[
-              { src: "/library/tile-1-ai-system.png", label: "AI Powered System For Any Biz" },
-              { src: "/library/tile-ai-language.jpg", label: "AI Language Models For Beginners" },
-              { src: "/library/tile-7-pod.png", label: "Print on Demand w/ AI" },
-              { src: "/library/tile-ai-content-physical.jpg", label: "AI Content Class: Physical Products" },
-              { src: "/library/tile-5-branding-gems.png", label: "Branding & Marketing Gems" },
-              { src: "/library/tile-money-map.jpg", label: "The Money Map" },
-              { src: "/library/tile-ai-twin.png", label: "How To Create An AI Twin / Avatar" },
-              { src: "/library/tile-digital-biz.png", label: "How To Start A Digital Product Biz" },
-            ].map((tile) => (
+            {libraryTiles.map((tile) => (
               <div
                 key={tile.src}
-                className="group overflow-hidden rounded-2xl bg-tta-white shadow-lg ring-1 ring-tta-black/5 transition hover:-translate-y-1 hover:shadow-xl"
+                className="group overflow-hidden rounded-[18px] border-2 border-tta-ink bg-white transition hover:-translate-y-1"
+                style={{ boxShadow: "6px 6px 0 var(--color-tta-purple)" }}
               >
-                <div className="relative aspect-[16/9] w-full overflow-hidden bg-tta-black/5">
+                <div className="relative aspect-[16/9] w-full overflow-hidden bg-tta-cloud">
                   <Image
                     src={tile.src}
                     alt={tile.label}
@@ -444,178 +548,346 @@ export default function Home() {
                     className="object-contain transition duration-500 group-hover:scale-105"
                   />
                 </div>
-                <div className="px-4 py-3">
-                  <p className="font-heading text-xs font-bold leading-tight text-tta-black/80">
+                <div className="border-t-2 border-tta-ink px-3.5 py-2.5">
+                  <p className="font-heading text-xs font-black leading-tight tracking-tight text-tta-ink">
                     {tile.label}
                   </p>
                 </div>
               </div>
             ))}
           </div>
-          <p className="mx-auto mt-10 max-w-2xl text-center text-base text-tta-black/60">
+          <p className="mx-auto mt-10 max-w-2xl text-center font-body text-sm text-tta-graphite">
             + 30 more trainings you can start the moment you&apos;re in.
           </p>
         </div>
       </section>
 
-      {/* WHO THIS IS FOR */}
-      <section className="bg-purple-50/50 px-6 py-24">
-        <div className="mx-auto max-w-3xl">
-          <div className="text-center">
-            <h2 className="font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">
-              This Is For You If…
+      {/* TESTIMONIALS — supporting receipts for the trial */}
+      <section className="bg-tta-white py-24">
+        <div className="mx-auto max-w-[1280px] px-7">
+          <div className="max-w-3xl">
+            <span className="inline-flex items-center gap-3 font-body text-xs font-bold uppercase tracking-[0.22em] text-tta-purple-hover before:inline-block before:h-0.5 before:w-7 before:bg-current">
+              Real members · real receipts
+            </span>
+            <h2 className="mt-4 font-heading font-black tracking-tight leading-[1.02] text-[clamp(40px,5vw,72px)]">
+              The same Academy <em className="not-italic text-tta-purple">they&apos;re winning inside.</em>
             </h2>
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-tta-graphite">
+              Your $7 unlocks the exact same vault these members built from. Hit play.
+            </p>
           </div>
-          <ul className="mt-12 space-y-5">
-            {whoFor.map((item) => (
-              <li
-                key={item}
-                className="flex items-start gap-4 rounded-2xl bg-tta-white p-5 shadow-sm"
+          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:gap-12">
+            <div className="flex flex-col items-center sm:items-start">
+              <div
+                className="relative aspect-[9/16] w-full max-w-[320px] overflow-hidden rounded-[18px] border-2 border-tta-ink bg-tta-ink"
+                style={{ boxShadow: "8px 8px 0 var(--color-tta-purple)" }}
               >
-                <CheckIcon />
-                <span className="text-lg leading-relaxed text-tta-black/85">
-                  {item}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* BRAND BREAK — Stop Trading Time For Money */}
-      <section className="relative overflow-hidden bg-tta-purple">
-        <div className="relative aspect-[16/7] w-full min-h-[260px]">
-          <Image
-            src="/tta-desc-1.webp"
-            alt="Stop trading time for money — build systems that scale"
-            fill
-            sizes="100vw"
-            className="object-cover object-center"
-          />
-        </div>
-      </section>
-
-      {/* FOUNDER STORY */}
-      <section className="bg-tta-white px-6 py-24">
-        <div className="mx-auto max-w-5xl">
-          <div className="grid items-center gap-12 md:grid-cols-[300px_1fr]">
-            <div className="mx-auto md:mx-0">
-              <div className="relative h-[300px] w-[300px] rounded-full bg-gradient-to-br from-tta-purple to-tta-pink p-2 shadow-xl">
-                <Image
-                  src="/coach-tee.png"
-                  alt="Coach Tee, founder of The Tee Academy"
-                  width={300}
-                  height={300}
-                  priority
-                  className="h-full w-full rounded-full object-cover ring-4 ring-white"
+                <video
+                  src="/testimonials/testimonial-1.mp4"
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="h-full w-full object-cover"
                 />
               </div>
-            </div>
-            <div>
-              <h2 className="font-heading text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl">
-                I left the classroom in 2021. Then AI changed everything.
-              </h2>
-              <div className="mt-6 space-y-5 text-lg leading-relaxed text-tta-black/75">
-                <p>
-                  Before I ever stepped into a classroom, I spent{" "}
-                  <span className="font-bold text-tta-black">16 years</span> at
-                  Payless Shoes — left as an Assistant District Manager with a
-                  brain wired for branding and marketing. That foundation
-                  became the quiet superpower behind everything that followed.
-                </p>
-                <p>
-                  I spent seven years in education — taught 5th grade for my
-                  last four — trained clients on the side as a personal
-                  trainer, competed as an athlete, and launched my own
-                  t-shirt brand on Black Friday 2019. TTA was born in{" "}
-                  <span className="font-bold text-tta-black">December 2020</span>,
-                  after I watched a wave of new entrepreneurs hit the same
-                  wall — nobody was teaching real marketing.
-                </p>
-                <p>
-                  I walked away from education in 2021. Then in 2022 I picked
-                  up AI, and everything shifted. What used to take me a full
-                  week started taking an afternoon. I scaled one of my
-                  businesses to{" "}
-                  <span className="font-bold text-tta-black">seven figures</span>{" "}
-                  and another to{" "}
-                  <span className="font-bold text-tta-black">six figures</span>
-                  {" "}— and every piece of that growth has AI fingerprints
-                  on it.
-                </p>
-                <p>
-                  TTA is the room I wish I&apos;d had on day one. Built for
-                  creatives who don&apos;t consider themselves &quot;tech
-                  people&quot; — you don&apos;t need to be. You need the room,
-                  the repetitions, and someone in your corner who&apos;s
-                  already walked the path. I love it here. And honestly,
-                  we&apos;re just getting started.
-                </p>
+              <div className="mt-3 max-w-[320px] text-center sm:text-left">
+                <div className="font-heading text-xl font-black tracking-tight text-tta-ink">Shannon</div>
+                <div className="mt-0.5 text-sm leading-snug text-tta-graphite">
+                  Sells digital products to beginner crafters. Made thousands + goes mega viral using TTA&apos;s content tips.
+                </div>
               </div>
-              <p className="mt-8 font-heading text-xl font-bold text-tta-purple">
-                — Coach Tee
-              </p>
+            </div>
+            <div className="flex flex-col items-center sm:items-start">
+              <div
+                className="relative aspect-[9/16] w-full max-w-[320px] overflow-hidden rounded-[18px] border-2 border-tta-ink bg-tta-ink"
+                style={{ boxShadow: "8px 8px 0 var(--color-tta-pink)" }}
+              >
+                <video
+                  src="/testimonials/testimonial-2.mp4"
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="mt-3 max-w-[320px] text-center sm:text-left">
+                <div className="font-heading text-xl font-black tracking-tight text-tta-ink">Kinese</div>
+                <div className="mt-0.5 text-sm leading-snug text-tta-graphite">
+                  New digital seller. Sold out her first prompt workshop — paid attendees before launch day.
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* PRICING CLARITY */}
-      <section className="bg-purple-50/50 px-6 py-24">
-        <div className="mx-auto max-w-4xl">
+      {/* UPCOMING CLASSES */}
+      <section className="bg-tta-purple text-white">
+        <div className="mx-auto max-w-[1280px] px-7 py-24">
           <div className="text-center">
-            <h2 className="font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">
-              The Simple Math
+            <span className="inline-flex items-center gap-3 font-body text-xs font-bold uppercase tracking-[0.22em] text-tta-pink-wash before:inline-block before:h-0.5 before:w-7 before:bg-current">
+              Live & Upcoming
+            </span>
+            <h2 className="mt-4 font-heading font-black tracking-tight leading-[1.02] text-[clamp(40px,5vw,72px)]">
+              Your first class could be <em className="not-italic" style={{ background: "linear-gradient(transparent 60%, var(--color-tta-pink) 60%, var(--color-tta-pink) 92%, transparent 92%)", padding: "0 0.08em" }}>this week.</em>
             </h2>
+            <p className="mx-auto mt-4 max-w-xl text-lg text-[#F1E9F8]">
+              These are real classes on the calendar right now. Show up live, or watch every replay inside the hub.
+            </p>
           </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-2">
-            <div className="rounded-3xl border-2 border-tta-pink bg-tta-white p-10 text-center shadow-lg">
-              <p className="font-heading text-sm font-bold uppercase tracking-wider text-tta-pink">
-                Today
-              </p>
-              <p className="mt-4 font-heading text-6xl font-extrabold text-tta-black">
-                $7
-              </p>
-              <p className="mt-4 text-lg text-tta-black/75">
-                7 days of full access · every live class this week · the entire
-                member hub.
-              </p>
-            </div>
-            <div className="rounded-3xl border-2 border-tta-purple/20 bg-tta-white p-10 text-center shadow-lg">
-              <p className="font-heading text-sm font-bold uppercase tracking-wider text-tta-purple">
-                After
-              </p>
-              <p className="mt-4 font-heading text-6xl font-extrabold text-tta-black">
-                $44<span className="text-2xl text-tta-black/50">/mo</span>
-              </p>
-              <p className="mt-4 text-lg text-tta-black/75">
-                Locked-in rate. Normally $97. Cancel anytime, no contracts.
-              </p>
-            </div>
-          </div>
-          <p className="mx-auto mt-10 max-w-2xl text-center text-lg leading-relaxed text-tta-black/75">
-            If you stay, you stay because it&apos;s working. If it&apos;s not
-            for you, one click in PayPal and you&apos;re out.
-          </p>
-
-          {/* Annual deal — secondary CTA for high-intent buyers */}
-          <div className="mx-auto mt-14 max-w-3xl rounded-3xl bg-gradient-to-br from-tta-purple to-purple-800 p-1 shadow-xl">
-            <div className="rounded-[1.4rem] bg-tta-white px-8 py-10 sm:px-12">
-              <div className="flex flex-col items-center gap-6 md:flex-row md:items-center md:justify-between md:gap-10">
-                <div className="text-center md:text-left">
-                  <p className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-tta-pink">
-                    Already know you want it?
-                  </p>
-                  <h3 className="mt-3 font-heading text-3xl font-extrabold leading-tight sm:text-4xl">
-                    Lock in a full year for{" "}
-                    <span className="text-tta-purple">$397</span>
-                  </h3>
-                  <p className="mt-3 text-base text-tta-black/70">
-                    That&apos;s <span className="font-bold text-tta-black">$131 less</span> than paying monthly ($44 × 12 = $528).
-                    Same full access, no trial, no monthly charge to remember.
-                  </p>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2">
+            {upcoming.map((e) => {
+              const [day, monDate] = e.date.split(", ");
+              const [mon, num] = monDate.split(" ");
+              return (
+                <div key={e.title} className="flex items-start gap-4 rounded-2xl bg-white/10 p-5 ring-1 ring-white/10 backdrop-blur-sm transition hover:bg-white/15">
+                  <div
+                    className="flex h-[88px] w-[88px] shrink-0 flex-col items-center justify-center rounded-2xl bg-tta-pink text-tta-ink"
+                    style={{ boxShadow: "3px 3px 0 var(--color-tta-ink)" }}
+                  >
+                    <div className="font-body text-[10px] font-black uppercase tracking-[0.18em]">{day}</div>
+                    <div className="font-heading text-3xl font-black leading-none">{num}</div>
+                    <div className="font-body text-[10px] font-black uppercase tracking-[0.18em]">{mon}</div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-body text-xs font-black uppercase tracking-[0.14em] text-tta-pink">{e.day}</div>
+                    <h3 className="mt-1.5 font-heading text-lg font-black leading-tight tracking-tight">{e.title}</h3>
+                    <div className="mt-2 text-xs text-[#F1E9F8]">Recorded for replays</div>
+                  </div>
                 </div>
-                <AnnualCta />
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* TRAINING CATEGORIES */}
+      <section className="bg-tta-white py-24">
+        <div className="mx-auto max-w-[1280px] px-7">
+          <div className="max-w-3xl">
+            <span className="inline-flex items-center gap-3 font-body text-xs font-bold uppercase tracking-[0.22em] text-tta-purple-hover before:inline-block before:h-0.5 before:w-7 before:bg-current">
+              40+ self-paced trainings
+            </span>
+            <h2 className="mt-4 font-heading font-black tracking-tight leading-[1.02] text-[clamp(40px,5vw,72px)]">
+              Everything you can <em className="not-italic text-tta-purple">binge in 7 days.</em>
+            </h2>
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-tta-graphite">
+              Your $7 unlocks the full library — every category, every training, every replay. No drip walls. No locked tiers.
+            </p>
+          </div>
+          <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {trainingCategories.map((cat) => (
+              <div key={cat.label} className="rounded-2xl border border-tta-hair bg-tta-cloud p-6">
+                <div className="font-heading text-xl font-black uppercase tracking-tight text-tta-purple">{cat.label}</div>
+                <ul className="mt-4 flex flex-wrap gap-2">
+                  {cat.items.map((it) => (
+                    <li key={it} className="rounded-full bg-white px-3 py-1.5 text-sm text-tta-graphite ring-1 ring-tta-hair">
+                      {it}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* WHO IT'S FOR */}
+      <section className="bg-tta-white py-24">
+        <div className="mx-auto max-w-[1280px] px-7">
+          <div className="grid gap-14 lg:grid-cols-[1.2fr_1fr] lg:gap-20">
+            <div>
+              <span className="inline-flex items-center gap-3 font-body text-xs font-bold uppercase tracking-[0.22em] text-tta-purple-hover before:inline-block before:h-0.5 before:w-7 before:bg-current">
+                Who this is for
+              </span>
+              <h2 className="mt-4 font-heading font-black tracking-tight leading-[1.02] text-[clamp(40px,5.2vw,76px)]">
+                For women in their <em className="not-italic text-tta-purple">building season.</em>
+              </h2>
+              <p className="mt-5 max-w-lg text-lg leading-relaxed text-tta-graphite">
+                Creative women ready to actually use AI to build income. Not watch content. Not dabble. Build.
+              </p>
+              <div className="mt-9 grid gap-3.5 sm:grid-cols-2">
+                {whoFor.map((w) => (
+                  <div key={w} className="flex items-start gap-3 text-base font-medium leading-snug text-tta-graphite">
+                    <div className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] bg-tta-purple text-white">
+                      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 6 5 9 10 3" /></svg>
+                    </div>
+                    <span>{w}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-tta-hair border-l-[3px] border-l-tta-ink bg-tta-cloud p-7">
+              <div className="font-heading text-2xl font-black tracking-tight">Not for…</div>
+              <ul className="mt-4 space-y-1">
+                {notFor.map((n, i) => (
+                  <li
+                    key={n}
+                    className={`flex items-start gap-2.5 py-2 text-[15px] leading-snug text-tta-graphite ${i < notFor.length - 1 ? "border-b border-dashed border-tta-hair" : ""}`}
+                  >
+                    <span className="mt-0.5 shrink-0 text-lg font-bold text-tta-mist">×</span>
+                    <span>{n}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING */}
+      <section id="pricing" className="relative overflow-hidden bg-tta-purple py-28 text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-0 right-0 top-8 whitespace-nowrap font-heading text-[84px] font-black leading-none tracking-tight"
+          style={{ color: "rgba(255,255,255,0.06)" }}
+        >
+          BUILDING SEASON · BUILDING SEASON · BUILDING SEASON · BUILDING SEASON · BUILDING SEASON ·
+        </div>
+        <div className="relative mx-auto max-w-[1280px] px-7">
+          <div className="mx-auto max-w-[1080px]">
+            <div className="text-center">
+              <span className="inline-flex items-center gap-3 font-body text-xs font-bold uppercase tracking-[0.22em] text-tta-pink-wash before:inline-block before:h-0.5 before:w-7 before:bg-current">
+                The 7-Day Access Pass
+              </span>
+              <h2 className="mt-4 font-heading font-black tracking-tight leading-[1.02] text-[clamp(48px,6vw,92px)]">
+                Seven days. Seven dollars. <em className="not-italic text-tta-pink">No excuses.</em>
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-[#F1E9F8]">
+                Get inside the Academy at the lowest price we&apos;ll ever offer. Use it. Build something. Decide if you want to stay.
+              </p>
+            </div>
+
+            <div className="mt-14 grid gap-7 lg:grid-cols-2 lg:items-start">
+              {/* CARD 1 — $7 ACCESS PASS */}
+              <div
+                className="relative rounded-[18px] border-2 border-tta-ink bg-white px-8 pt-9 pb-7 text-tta-ink"
+                style={{ boxShadow: "8px 8px 0 var(--color-tta-pink)" }}
+              >
+                <div
+                  className="absolute -top-3.5 right-6 rounded-full border-2 border-tta-ink bg-tta-pink px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-tta-ink"
+                >
+                  Limited · Closes Sunday
+                </div>
+                <h3 className="font-heading text-3xl font-black leading-none tracking-tight">7-Day Access Pass</h3>
+                <p className="mt-1 text-sm text-tta-ash">Full Academy access. One time. No auto-bill on the $7.</p>
+                <div className="my-5 flex items-baseline gap-3.5 border-y-2 border-tta-ink py-4">
+                  <div className="font-heading text-[78px] font-black leading-[0.95] tracking-[-0.03em]">
+                    <span className="align-top text-[44px] leading-tight">$</span>7
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm text-tta-ash line-through">$97/mo regular</span>
+                    <span className="text-sm font-semibold text-tta-graphite">$1/day · 7 days</span>
+                  </div>
+                </div>
+                <div className="mb-6 flex flex-col gap-2.5">
+                  {[
+                    "2–3 live workshops while you're in",
+                    "Full prompt library (300+ prompts)",
+                    "Community + hot-seat threads",
+                    "AI Twin training + 40+ walkthroughs",
+                  ].map((li) => (
+                    <div key={li} className="flex items-start gap-2.5 text-sm leading-snug text-tta-graphite">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-tta-purple"><polyline points="20 6 9 17 4 12" /></svg>
+                      <span>{li}</span>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={openModal}
+                  className="flex w-full items-center justify-center gap-2.5 rounded-[10px] bg-tta-ink px-5 py-4 font-body text-sm font-black uppercase tracking-[0.12em] text-white transition hover:bg-tta-purple"
+                >
+                  Get my 7-Day Pass
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                </button>
+                <p className="mt-3 text-center text-[11px] leading-relaxed text-tta-ash">
+                  One-time $7. Auto-renews at $44/mo after day 7 unless you cancel inside PayPal.
+                </p>
+              </div>
+
+              {/* CARD 2 — $397 ANNUAL (BEST VALUE) */}
+              <div
+                className="relative rounded-[18px] border-2 border-tta-ink bg-tta-ink px-8 pt-9 pb-7 text-white"
+                style={{ boxShadow: "8px 8px 0 var(--color-tta-pink)" }}
+              >
+                <div
+                  className="absolute -top-3.5 right-6 rounded-full border-2 border-tta-ink bg-tta-pink px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-tta-ink"
+                >
+                  Best Value · Save $131
+                </div>
+                <h3 className="font-heading text-3xl font-black leading-none tracking-tight">Annual Membership</h3>
+                <p className="mt-1 text-sm text-[#B5B5B6]">Skip the trial. Lock in a year + get bonuses worth $400+.</p>
+                <div className="my-5 flex items-baseline gap-3.5 border-y-2 border-white/30 py-4">
+                  <div className="font-heading text-[78px] font-black leading-[0.95] tracking-[-0.03em]">
+                    <span className="align-top text-[44px] leading-tight">$</span>397
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm text-[#B5B5B6] line-through">$528/yr regular</span>
+                    <span className="text-sm font-semibold text-white">$33/mo · billed yearly</span>
+                  </div>
+                </div>
+
+                <div className="mb-5 rounded-[10px] border border-tta-pink/40 bg-tta-pink/10 p-4">
+                  <div className="font-body text-[10px] font-black uppercase tracking-[0.16em] text-tta-pink">Annual Bonuses · Free</div>
+                  <div className="mt-2 space-y-2 text-sm leading-snug">
+                    <div className="flex items-start gap-2">
+                      <span className="mt-0.5 shrink-0 text-tta-pink">★</span>
+                      <span><b className="font-bold">Prompt Like A Pro Generator</b> — the GPT that writes your campaign prompts ($47 value)</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="mt-0.5 shrink-0 text-tta-pink">★</span>
+                      <span><b className="font-bold">30-min Welcome Jumpstart Call</b> with Coach Tee — map your first 30 days inside TTA</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-5 flex flex-col gap-2.5">
+                  {[
+                    "Everything in monthly — full access, no walls",
+                    "Live workshops every Mon + Thu, all year",
+                    "All 40+ trainings + new ones added monthly",
+                    "Priority hot-seats in the community",
+                  ].map((li) => (
+                    <div key={li} className="flex items-start gap-2.5 text-sm leading-snug text-[#B5B5B6]">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-tta-pink"><polyline points="20 6 9 17 4 12" /></svg>
+                      <span>{li}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <label className="mb-3 flex cursor-pointer items-start gap-2.5 rounded-lg bg-white/5 p-3 ring-1 ring-white/10 transition hover:bg-white/10">
+                  <input
+                    type="checkbox"
+                    checked={annualAgreed}
+                    onChange={(e) => setAnnualAgreed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-tta-pink"
+                  />
+                  <span className="text-[11px] leading-snug text-[#D8D8D9]">
+                    I understand this is a $397 annual payment for 12 months of TTA access, and it auto-renews at $397/year until I cancel. I&apos;ve read the{" "}
+                    <Link href="/terms" className="text-tta-pink underline">Terms</Link>
+                    {" "}and{" "}
+                    <Link href="/privacy" className="text-tta-pink underline">Privacy Policy</Link>.
+                  </span>
+                </label>
+
+                <a
+                  href={annualAgreed ? ANNUAL_CHECKOUT : undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-disabled={!annualAgreed}
+                  tabIndex={annualAgreed ? 0 : -1}
+                  onClick={(e) => { if (!annualAgreed) e.preventDefault(); }}
+                  className={`flex w-full items-center justify-center gap-2.5 rounded-[10px] bg-tta-pink px-5 py-4 font-body text-sm font-black uppercase tracking-[0.12em] text-tta-ink transition ${
+                    annualAgreed ? "hover:bg-white" : "cursor-not-allowed opacity-50"
+                  }`}
+                >
+                  Get the Annual Deal
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                </a>
+                <p className="mt-3 text-center text-[11px] leading-relaxed text-[#B5B5B6]">
+                  or <b className="font-bold text-white">4 payments of $101</b> with Zip at checkout
+                </p>
               </div>
             </div>
           </div>
@@ -623,83 +895,66 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section className="bg-tta-white px-6 py-24">
-        <div className="mx-auto max-w-3xl">
-          <div className="text-center">
-            <h2 className="font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">
-              Questions, Answered
-            </h2>
-          </div>
-          <div className="mt-12 space-y-4">
-            {faqs.map((f) => (
-              <details
-                key={f.q}
-                className="group rounded-2xl border border-tta-black/10 bg-tta-white p-6 transition open:border-tta-purple/40 open:shadow-md"
-              >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-heading text-lg font-bold text-tta-black marker:hidden">
-                  {f.q}
-                  <span
-                    aria-hidden
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-tta-purple/10 text-xl font-bold text-tta-purple transition group-open:rotate-45"
-                  >
-                    +
-                  </span>
-                </summary>
-                <p className="mt-4 text-base leading-relaxed text-tta-black/75">
-                  {f.a}
-                </p>
-              </details>
-            ))}
+      <section className="bg-tta-white py-24">
+        <div className="mx-auto max-w-[1280px] px-7">
+          <div className="grid gap-12 lg:grid-cols-[1fr_1.4fr] lg:gap-16">
+            <div>
+              <span className="inline-flex items-center gap-3 font-body text-xs font-bold uppercase tracking-[0.22em] text-tta-purple-hover before:inline-block before:h-0.5 before:w-7 before:bg-current">
+                Common questions
+              </span>
+              <h2 className="mt-4 font-heading font-black tracking-tight leading-[1.02] text-[clamp(40px,5vw,72px)]">
+                Real talk, <em className="not-italic text-tta-purple">fast answers.</em>
+              </h2>
+              <p className="mt-4 max-w-sm text-lg leading-relaxed text-tta-graphite">
+                If your question isn&apos;t here, DM <b className="font-bold">@theteeacademy</b> and we&apos;ll get back to you within a day.
+              </p>
+            </div>
+            <FaqList />
           </div>
         </div>
       </section>
 
       {/* FINAL CTA */}
-      <section className="relative overflow-hidden bg-tta-purple px-6 py-24 text-center text-white">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-tta-purple via-tta-purple to-purple-800"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-24 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-tta-pink/20 blur-3xl"
-        />
-        <div className="relative mx-auto max-w-3xl">
-          <h2 className="font-heading text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl">
-            The Room Is Open.
-          </h2>
-          <p className="mx-auto mt-6 max-w-xl text-xl leading-relaxed text-white/85">
-            Your first class could be this Monday. Try it for $7.
-          </p>
-          <div className="mt-10 flex justify-center">
-            <CtaButton dark>Start My 7-Day Pass — $7</CtaButton>
-          </div>
-          <p className="mt-4 text-sm text-white/70">
-            Then $44/month. Cancel anytime.
-          </p>
+      <section className="bg-tta-ink px-7 py-24 text-center text-white">
+        <h2 className="mx-auto max-w-4xl font-heading font-black tracking-tight leading-[1.02] text-[clamp(48px,6.5vw,108px)]">
+          Your building season starts the day you{" "}
+          <em
+            className="not-italic"
+            style={{
+              background: "linear-gradient(transparent 60%, var(--color-tta-pink) 60%, var(--color-tta-pink) 92%, transparent 92%)",
+              padding: "0 0.08em",
+              color: "#fff",
+            }}
+          >
+            decide.
+          </em>
+        </h2>
+        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-[#B5B5B6]">
+          Seven days. Seven dollars. The same Academy 500+ creatives are using to actually build.
+        </p>
+        <div className="mt-9 flex justify-center">
+          <StampButton onClick={openModal} price="$7" variant="white">Get my 7-Day Pass</StampButton>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-tta-black px-6 py-12 text-center text-sm text-white/60">
-        <p>© 2026 The Tee Academy</p>
-        <div className="mt-3 flex justify-center gap-6">
-          <Link href="/privacy" className="hover:text-white">
-            Privacy
-          </Link>
-          <span aria-hidden>·</span>
-          <Link href="/terms" className="hover:text-white">
-            Terms
-          </Link>
-          <span aria-hidden>·</span>
-          <a
-            href="mailto:support@theteeacademy.co"
-            className="hover:text-white"
-          >
-            Contact
-          </a>
+      <footer className="border-t border-tta-hair bg-tta-white px-7 py-8">
+        <div className="mx-auto flex max-w-[1280px] flex-wrap justify-between gap-6 text-sm text-tta-ash">
+          <div>© The Tee Academy — Building season, all year.</div>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <a href="https://instagram.com/theteeacademy" target="_blank" rel="noopener noreferrer" className="font-semibold text-tta-graphite transition hover:text-tta-purple">Instagram</a>
+            <Link href="/terms" className="font-semibold text-tta-graphite transition hover:text-tta-purple">Terms</Link>
+            <Link href="/privacy" className="font-semibold text-tta-graphite transition hover:text-tta-purple">Privacy</Link>
+            <a href="mailto:support@theteeacademy.co" className="font-semibold text-tta-graphite transition hover:text-tta-purple">Contact</a>
+          </div>
         </div>
       </footer>
+
+      {/* STICKY MOBILE BAR */}
+      <StickyMobileBar onCta={openModal} />
+
+      {/* CHECKOUT MODAL */}
+      <CheckoutModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </main>
   );
 }
