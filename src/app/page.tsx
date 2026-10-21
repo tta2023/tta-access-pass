@@ -35,7 +35,7 @@ const libraryTiles: { src: string; label: string }[] = [
 const trainingCategories: { label: string; items: string[] }[] = [
   {
     label: "AI Skills",
-    items: ["Prompt Like A Pro", "AI Language Models for Beginners", "Nano Banana Image Prompts", "AI Edit Like A Pro", "AI Lip Sync Training", "Higgsfield AI Twin", "AI Avatar For Free", "Custom GPTs + Mini Apps"],
+    items: ["Prompt Like A Pro", "AI Language Models for Beginners", "Nano Banana Image Prompts", "Edit Like A Pro", "AI Lip Sync Training", "Higgsfield AI Twin", "AI Avatar For Free", "Custom GPTs + Mini Apps"],
   },
   {
     label: "Video & Content",
